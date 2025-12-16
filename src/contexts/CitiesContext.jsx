@@ -1,4 +1,3 @@
-import { circle } from "leaflet";
 import {
   createContext,
   useEffect,
@@ -24,7 +23,11 @@ function reducer(state, action) {
       return { ...state, isLoading: true };
 
     case "cities/loaded":
-      return { ...state, isLoading: false, cities: action.payload };
+      return {
+        ...state,
+        isLoading: false,
+        cities: action.payload,
+      };
 
     case "city/loaded":
       return { ...state, isLoading: false, currentCity: action.payload };
@@ -37,7 +40,7 @@ function reducer(state, action) {
         currentCity: action.payload,
       };
 
-    case "city/delete":
+    case "city/deleted":
       return {
         ...state,
         isLoading: false,
@@ -66,6 +69,7 @@ function CitiesProvider({ children }) {
   useEffect(function () {
     async function fetchCities() {
       dispatch({ type: "loading" });
+
       try {
         const res = await fetch(`${BASE_URL}/cities`);
         const data = await res.json();
@@ -79,11 +83,13 @@ function CitiesProvider({ children }) {
     }
     fetchCities();
   }, []);
-  // gancho para evitar bucles infinitos
+
   const getCity = useCallback(
     async function getCity(id) {
       if (Number(id) === currentCity.id) return;
+
       dispatch({ type: "loading" });
+
       try {
         const res = await fetch(`${BASE_URL}/cities/${id}`);
         const data = await res.json();
@@ -97,8 +103,10 @@ function CitiesProvider({ children }) {
     },
     [currentCity.id]
   );
+
   async function createCity(newCity) {
     dispatch({ type: "loading" });
+
     try {
       const res = await fetch(`${BASE_URL}/cities`, {
         method: "POST",
@@ -107,7 +115,6 @@ function CitiesProvider({ children }) {
           "Content-Type": "application/json",
         },
       });
-
       const data = await res.json();
 
       dispatch({ type: "city/created", payload: data });
@@ -121,6 +128,7 @@ function CitiesProvider({ children }) {
 
   async function deleteCity(id) {
     dispatch({ type: "loading" });
+
     try {
       await fetch(`${BASE_URL}/cities/${id}`, {
         method: "DELETE",
@@ -141,8 +149,8 @@ function CitiesProvider({ children }) {
         cities,
         isLoading,
         currentCity,
-        getCity,
         error,
+        getCity,
         createCity,
         deleteCity,
       }}
@@ -151,6 +159,7 @@ function CitiesProvider({ children }) {
     </CitiesContext.Provider>
   );
 }
+
 function useCities() {
   const context = useContext(CitiesContext);
   if (context === undefined)
